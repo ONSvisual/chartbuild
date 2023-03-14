@@ -83,14 +83,14 @@ let inputs = {
     "css": "",
     "config": "",
     "csv": ""
-} //inputs bundles together fetched files from a GitHub Repo as strings in a JSON object. They will also be saved to LocalStorage and downloadable as a .ons file
+} //inputs bundles together fetched files from a GitHub Repo as strings in a JSON object. They will also be saved to sessionStorage and downloadable as a .ons file
 
 //SIMPLE FUNCTIONS
 const comments = new RegExp('//.*', 'mg') //this regex can strip out commented out lines from .js files
 //END OF - SIMPLE FUNCTIONS
 
 let getTemplate = (string) =>
-    //localStorage[string] ? inputs = JSON.parse(localStorage[string]) :
+    //sessionStorage[string] ? inputs = JSON.parse(sessionStorage[string]) :
     fetch( //getTemlate follows this order of getting: Config_then_JS_then_CSV_then_CSS. It cleans them up as it progresses
         `${root}${string}/config.js`
     )
@@ -133,7 +133,7 @@ let getTemplate = (string) =>
                                 inputs.css = css;
                                 inputs.csv = csv;
                                 inputs.js = js;
-                                localStorage[string] = JSON.stringify(inputs)
+                                sessionStorage[string] = JSON.stringify(inputs)
                                 gotJavaScript(inputs)
                             })
                     })
@@ -222,7 +222,7 @@ onMount(() => getTemplate(chart))
     inputs.config[main][sub] = e.target.value
     .replace(/"/g, '')
     .replace(/\n/g, '');
-    localStorage[chart] = JSON.stringify(inputs);
+    sessionStorage[chart] = JSON.stringify(inputs);
     getTemplate(chart)
     }}
     value={JSON.stringify(inputs.config[main][sub]).trim().replace(/"/g,'')}

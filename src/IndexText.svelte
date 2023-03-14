@@ -1,10 +1,11 @@
 <script>
 export let chart
-//let inputs = JSON.parse(localStorage[chart])
+//let inputs = JSON.parse(sessionStorage[chart])
 
 let output;
 import html2canvas from 'html2canvas'
-
+let global
+fetch("/global.css").then(css=>css.text()).then(text=>global=text)
 let graph = document.getElementById("graph")
 
 function getPNG(){
@@ -45,12 +46,13 @@ let codeBase = (inputs) =>
 +'  <scr'+'ipt src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js" type="text/javascript"></scr'+'ipt>'
 +'  <scr'+'ipt src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></scr'+'ipt>'
 +'	<scr'+'ipt src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></scr'+'ipt>'
-+'  <style>'+inputs.css+'</st'+'yle>'
++'  <style>'+inputs.css + global + '</st'+'yle>'
 +'</he'+'ad>'
 +'<body>'
 +'  <h5 id="accessibleSummary" class="visuallyhidden"></h5>'
 +'  <div id="select"></div>'
 +'  <div id="nav"></div>'
++'  <div aria-hidden="true" id="titles"></div>'
 +'  <div aria-hidden="true" id="legend"></div>'
 +'  <div id="graphic" aria-hidden="true">'
 +'  <img src="fallback.png" alt='+inputs.config.essential.accessibleSummary+'/>'
@@ -63,7 +65,7 @@ let codeBase = (inputs) =>
 
 function downloadHTML(filename) {
 
-  let text = codeBase(JSON.parse(localStorage[chart]));
+  let text = codeBase(JSON.parse(sessionStorage[chart]));
   console.log("TEXT",text)
   var element = document.createElement('a');
   element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
@@ -75,7 +77,7 @@ function downloadHTML(filename) {
 }
 function downloadCSV(filename) {
 
-let text = JSON.parse(localStorage[chart])["csv"];
+let text = JSON.parse(sessionStorage[chart])["csv"];
 console.log("TEXT",text)
 var element = document.createElement('a');
 element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
