@@ -466,7 +466,7 @@
                     updateCode(inputs)
                   }}>
                   {#each d3Format as option, i}
-                    <option value={option[1]}>{option[0]}</option>
+                    <option value={option[1]}>{option[0]}  ({option[1]})</option>
                   {/each}
                 </select>
               {:else if typeof inputs.config[main][sub] == 'object'}
