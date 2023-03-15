@@ -472,7 +472,7 @@
               {:else if typeof inputs.config[main][sub] == 'object'}
                 {#each Object.keys(inputs.config[main][sub]) as subsub}
                   {#if typeof inputs.config[main][sub][subsub] == 'object'}
-                    <h4>{subsub}</h4>
+                    <h4>Object {subsub}</h4>
                     <div>
                       {#each Object.keys(inputs.config[main][sub][subsub]) as subsubsub}
                         <label for={'field_' + subsubsub} class="label">
@@ -484,8 +484,6 @@
                           id="field_{subsubsub}"
                           on:change={(e) => {
                             inputs.config[main][sub][subsub][subsubsub] = e.target.value
-                              .replace(/"/g, '')
-                              .replace(/\n/g, '')
                             sessionStorage[chart] = JSON.stringify(inputs)
                             updateCode(inputs)
                           }}
@@ -493,16 +491,19 @@
                       {/each}
                     </div>
                   {:else}
-                    <textarea
-                      class="full"
-                      on:change={(e) => {
-                        inputs.config[main][sub][subsub] = e.target.value
-                          .replace(/"/g, '')
-                          .replace(/\n/g, '')
-                        sessionStorage[chart] = JSON.stringify(inputs)
-                        updateCode(inputs)
-                      }}
-                      value={inputs.config[main][sub][subsub]} />
+                  <label for={'field_' + subsub} class="label">
+                    {subsub}:
+                  </label>
+                  <input
+                    type="number"
+                    class="full"
+                    id="field_{subsub}"
+                    on:change={(e) => {
+                      inputs.config[main][sub][subsub] = e.target.value
+                      sessionStorage[chart] = JSON.stringify(inputs)
+                      updateCode(inputs)
+                    }}
+                    value={inputs.config[main][sub][subsub]} />
                   {/if}
                 {/each}
               {:else}
