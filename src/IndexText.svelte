@@ -85,7 +85,15 @@
         newImg.onload = () => {
           // no longer need to read the blob so it's revoked
           var zip = new JSZip();
-          zip.file("index.html", codeBase(JSON.parse(sessionStorage[chart])));
+         // zip.file("index.html", codeBase(JSON.parse(sessionStorage[chart])));
+          var lib = zip.folder("lib");
+          let libContent = JSON.parse(localStorage.libFiles);
+          Object.keys(libContent).forEach(k=>
+          lib.file(k.replace("lib/",""), libContent[k])
+          )
+          zip.file("index.html", JSON.parse(sessionStorage[chart]).markup)
+          zip.file("config.js", JSON.stringify(JSON.parse(sessionStorage[chart]).config))
+          zip.file("chart.css", JSON.parse(sessionStorage[chart]).css)
           zip.file("fallback.png", urlToPromise(url), {binary:true});
           zip.file("data.csv", "data:text/plain;charset=utf-8," + JSON.parse(sessionStorage[chart])["csv"])
           zip.generateAsync({ type: "blob" }).then(function (content) {

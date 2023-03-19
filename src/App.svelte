@@ -1,9 +1,39 @@
 <script>
   import { onMount } from 'svelte'
+  import { Octokit } from "octokit";
+
+  const root = 'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' //where this app is getting stuff from on GitHub
+  //charts is simply a list of names of current templates available on the ONSvisual/census-charts GitHub repo. It can be added to. Bad charts could be commented out before they are fixed.
+
+const octokit = new Octokit({ 
+  auth: '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 ',
+
+});
   //import IndexText from './IndexText.svelte'
   import Head from './Head.svelte'
   import { tsvParse, csvParse, tsvFormat, csvFormat } from 'd3-dsv'
   import * as d3 from 'd3'
+let tree, myTree, libTree, libFiles={};
+
+ async function getGit(){  
+  const result = await octokit.request("GET /repos/ONSvisual/census-charts/git/trees/main?recursive=1", {
+  owner: "github",
+  repo: "docs",
+  per_page: 2
+});
+if(result){
+tree=result.data.tree
+libTree=tree.filter(e=>e.path.startsWith('lib/')).map(e=>e.path)
+localStorage.gitTree=tree;
+localStorage.libTree=libTree;
+if(!localStorage.libFiles)libTree.forEach(path=>fetch(root + path).then(res=>res.text()).then(text=>libFiles[path]=text).then(e=>localStorage.libFiles=JSON.stringify(libFiles)))
+console.log("RESULT",result)
+}
+ }
+ getGit() //get the REPL directory listing as JSON
+ 
+  
+  $: console.log(libTree, libFiles)
 
   let d3Format = [
     ['35.792 => 36', '.0f'],
@@ -74,9 +104,6 @@
     tidycolumns = tidy.columns
   }
 
-  const root = 'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' //where this app is getting stuff from on GitHub
-  //charts is simply a list of names of current templates available on the ONSvisual/census-charts GitHub repo. It can be added to. Bad charts could be commented out before they are fixed.
-
   const charts = [
     'bar-chart',
     'comet-plot',
@@ -117,6 +144,7 @@
   //END OF - SIMPLE FUNCTIONS
 
   let getTemplate = (string) =>
+  
     fetch(
       //getTemlate follows this order of getting: Config_then_JS_then_CSV_then_CSS. It cleans them up as it progresses
       `${root}${string}/config.js`,
@@ -167,6 +195,7 @@
                 )
                   .then((res) => res.text())
                   .then((txt) => {
+                    fetch ("https://raw.githubusercontent.com/ONSvisual/census-charts/main/"+string+"/index.html").then(res=>res.text()).then(text=>inputs["markup"]=text).then(next=>{
                     css = txt //and save the custom CSS to the css variable, though it might need to be injected somewhere?
                     inputs.chartType = string
                     inputs.css = css
@@ -175,6 +204,7 @@
                     inputs.combined = combined
                     sessionStorage[string] = JSON.stringify(inputs)
                     gotJavaScript(inputs)
+                  })
                   })
               })
           })
