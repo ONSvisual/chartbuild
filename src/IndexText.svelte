@@ -212,12 +212,13 @@
   }
 </script>
 
+
 <svelte:head>
-  <script src="https://unpkg.com/jszip@latest/dist/jszip.min.js"/>
+  <script src="https://unpkg.com/jszip@latest/dist/jszip.min.js"></script>
   <script
     type="text/javascript"
     src="https://cdnjs.cloudflare.com/ajax/libs/jszip-utils/0.1.0/jszip-utils.js"
-  />
+  ></script>
 </svelte:head>
 
 <br /><br /><br />
