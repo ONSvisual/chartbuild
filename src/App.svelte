@@ -1,7 +1,8 @@
 <script>
   import { onMount } from 'svelte'
   import { Octokit } from "octokit";
-
+  import cssToJS from "transform-css-to-js";
+  import CodeEditor from './CodeEditor.svelte'
   const root = 'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' //where this app is getting stuff from on GitHub
   //charts is simply a list of names of current templates available on the ONSvisual/census-charts GitHub repo. It can be added to. Bad charts could be commented out before they are fixed.
 
@@ -343,6 +344,13 @@ console.log("RESULT",result)
   label{
     margin-left:15px
   }
+  .prismContainer{
+    position:relative;
+  }
+  .css{
+    width:100%;
+    height: 300px;
+  }
 </style>
 
 {#if inputs.combined}
@@ -673,5 +681,16 @@ console.log("RESULT",result)
         {/each}
       {/if}
     {/each}
+    <div class="prismContainer">
+    <textarea 
+    class="css" 
+    bind:value={inputs.css}
+    on:keyup={(e)=>{
+      console.log("CSS",cssToJS(inputs.css))
+      sessionStorage[chart] = JSON.stringify(inputs);
+      updateCode(inputs)
+    }}
+    ></textarea>
   </div>
+</div>
 {/if}

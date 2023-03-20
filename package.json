@@ -22,6 +22,8 @@
   "dependencies": {
     "octokit": "^2.0.14",
     "sirv-cli": "^2.0.0",
-    "terser": "^5.16.5"
+    "svelte-prism": "^1.1.6",
+    "terser": "^5.16.5",
+    "transform-css-to-js": "^0.1.1"
   }
 }
