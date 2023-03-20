@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte'
   import { Octokit } from "octokit";
+  import { HSplitPane } from 'svelte-split-pane';
   import cssToJS from "transform-css-to-js";
   const root = 'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' //where this app is getting stuff from on GitHub
   //charts is simply a list of names of current templates available on the ONSvisual/census-charts GitHub repo. It can be added to. Bad charts could be commented out before they are fixed.
@@ -350,12 +351,31 @@ console.log("RESULT",result)
     width:100%;
     height: 300px;
   }
+  main {
+    text-align: center;
+    margin: 0 auto;
+}
+div.wrapper {
+    width: 95%;
+    height: 400px;
+    margin: auto;
+}
+left, right, top, down {
+    width: 100%;
+    height: 100%;
+    display: block;
+    text-align: center;
+}
+
 </style>
 
 {#if inputs.combined}
   <Head headContent={inputs.css} />
-  <div id="outputHTML">
-    <div id="graph">
+
+  <HSplitPane updateCallback={() => {
+    console.log('VSplitPane Updated!');
+}}>
+    <left slot="left">
       <span id="accessibleSummary" class="visuallyhidden" />
       {#if inputs.config.elements.select}
         <div id="select" />
@@ -371,11 +391,11 @@ console.log("RESULT",result)
       {/if}
       <div id="graphic" aria-hidden="true" />
       <span id="source" />
-    </div>
     <IndexText {chart} />
-  </div>
+    <div id="graph"></div>
+    </left>
 
-  <div class="half">
+  <right slot="right">
     <b color="#0f8243">
       <a
         href="https://docs.google.com/spreadsheets/d/1qlDgJIJCdumMRwLmI1_KF4yAKwtDoHmToYKEwZMq_zU/edit?usp=sharing"
@@ -689,5 +709,6 @@ console.log("RESULT",result)
       updateCode(inputs)
     }}
     ></textarea>
-  </div>
+  </right>
+</HSplitPane>
 {/if}

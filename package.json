@@ -25,6 +25,7 @@
   "dependencies": {
     "octokit": "^2.0.14",
     "sirv-cli": "^2.0.0",
+    "svelte-split-pane": "^0.1.2",
     "terser": "^5.16.5",
     "transform-css-to-js": "^0.1.1"
   }
