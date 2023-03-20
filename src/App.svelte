@@ -344,12 +344,6 @@ console.log("RESULT",result)
     height: 300px;
   }
 
-left, right{
-    width: 100%;
-    height: 100%;
-    display: block;
-    text-align: center;
-}
 
 </style>
 
