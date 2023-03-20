@@ -266,13 +266,7 @@ console.log("RESULT",result)
     width: 95%;
     padding: 5px;
   }
-  .half,
-  #outputHTML {
-    width: 50%;
-    float: left;
-    height: 100vh;
-    overflow-y: scroll;
-  }
+
   :global(body) {
     max-width: 100vw;
   }
@@ -308,6 +302,7 @@ console.log("RESULT",result)
   select {
     -webkit-appearance: none;
     -moz-appearance: none;
+    appearance: none;
     font-family: inherit;
     font-size: inherit;
     -webkit-padding: 0.4em 0;
@@ -344,23 +339,12 @@ console.log("RESULT",result)
   label{
     margin-left:15px
   }
-  .prismContainer{
-    position:relative;
-  }
   .css{
     width:100%;
     height: 300px;
   }
-  main {
-    text-align: center;
-    margin: 0 auto;
-}
-div.wrapper {
-    width: 95%;
-    height: 400px;
-    margin: auto;
-}
-left, right, top, down {
+
+left, right{
     width: 100%;
     height: 100%;
     display: block;
