@@ -7,9 +7,10 @@
   //charts is simply a list of names of current templates available on the ONSvisual/census-charts GitHub repo. It can be added to. Bad charts could be commented out before they are fixed.
 
 const octokit = new Octokit({ 
-  auth: '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 ',
-
+  auth: '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',
 });
+
+console.log("ockto",octokit)
   //import IndexText from './IndexText.svelte'
   import Head from './Head.svelte'
   import { tsvParse, csvParse, tsvFormat, csvFormat } from 'd3-dsv'

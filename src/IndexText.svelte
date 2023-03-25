@@ -8,10 +8,10 @@
   fetch("/global.css")
     .then((css) => css.text())
     .then((text) => (global = text));
-  let graph = document.getElementById("graph");
+  let graph = document.getElementById("graphic");
 
   function getPNG() {
-    let graph = document.getElementById("graph");
+    let graph = document.getElementById("graphic");
 
     function download(canvas) {
       const data = canvas.toDataURL("image/png;base64");
@@ -21,16 +21,16 @@
       donwloadLink.click();
     }
 
-    html2canvas(document.querySelector("#graph")).then((canvas) => {
+    html2canvas(document.querySelector("#graphic")).then((canvas) => {
       // document.body.appendChild(canvas);
       download(canvas);
     });
   }
 
   function generatePNG() {
-    let graph = document.getElementById("graph");
+    let graph = document.getElementById("graphic");
     console.log(
-      html2canvas(document.querySelector("#graph")).then((canvas) =>
+      html2canvas(document.querySelector("#graphic")).then((canvas) =>
         canvas.toDataURL("image/png;base64")
       )
     );
@@ -77,9 +77,11 @@
 
   function downloadZip() {
     let image;
-    html2canvas(document.querySelector("#graph")).then((canvas) => {
-      canvas.toBlob((blob) => {
+    console.log("html2canvas",html2canvas)
+    html2canvas(document.querySelector("#graphic")).then((canvas) => {
+      canvas.toBlob(blob => {
         const newImg = document.createElement("img");
+        console.log("blob",blob)
         const url = URL.createObjectURL(blob);
         image = url;
         newImg.onload = () => {
@@ -112,9 +114,10 @@
         console.log(image);
         newImg.src = url;
         document.body.appendChild(newImg);
-      });
-    });
+      })
+    })
   }
+
 
   let codeBase = (inputs) =>
     "<!DOCTYPE html>" +
