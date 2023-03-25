@@ -18,10 +18,9 @@ console.log("ockto",octokit)
 let tree, myTree, libTree, libFiles={};
 
  async function getGit(){  
-  const result = await octokit.request("GET /repos/ONSvisual/census-charts/git/trees/main?recursive=1", {
-  owner: "github",
-  repo: "docs",
-  per_page: 2
+  const result = await octokit.request("GET /repos/{owner}/{repo}/git/trees/main?recursive=1", {
+  owner: "ONSvisual",
+  repo: "all-charts-before"
 });
 if(result){
 tree=result.data.tree
