@@ -24,8 +24,8 @@
     const result = await octokit.request(
       'GET /repos/{owner}/{repo}/git/trees/main?recursive=1',
       {
-        owner: 'ONSdigital',
-        repo: 'cdn.ons.gov.uk-vendor',
+        owner: 'ONSvisual',
+        repo: 'all-charts-before',
       },
     )
     if (result) {
