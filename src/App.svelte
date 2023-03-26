@@ -5,7 +5,7 @@
   import cssToJS from 'transform-css-to-js'
   const root = 'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' //where this app is getting stuff from on GitHub
   //charts is simply a list of names of current templates available on the ONSvisual/census-charts GitHub repo. It can be added to. Bad charts could be commented out before they are fixed.
-
+  let menuItems;
   const octokit = new Octokit({
     auth: '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',
   })
@@ -41,6 +41,7 @@
             .then((e) => (localStorage.libFiles = JSON.stringify(libFiles))),
         )
       console.log('RESULT', result)
+      menuItems=[...new Set(result.data.tree.map(e=>e.path.split('/')[0]))]
     }
   }
   getGit() //get the REPL directory listing as JSON
@@ -404,7 +405,14 @@
           <option value={chart}>{tidyList(chart)}</option>
         {/each}
       </select>
-
+      <h3 style:color="slategrey">full menu</h3>
+      {#if menuItems}
+      <select class="full" bind:value={chart} on:change={renderCode}>
+        {#each menuItems as chart}
+          <option value={chart}>{tidyList(chart)}</option>
+        {/each}
+      </select>
+      {/if}
       {#if columns && inputs.config.essential}
         <a
           href={inputs.config.essential.graphic_data_url}
