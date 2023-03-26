@@ -40,8 +40,8 @@
             .then((text) => (libFiles[path] = text))
             .then((e) => (localStorage.libFiles = JSON.stringify(libFiles))),
         )
-      console.log('RESULT', result)
-      menuItems=[...new Set(result.data.tree.map(e=>e.path.split('/')[0]))]
+      console.log('Tree', result.data)
+      menuItems=[...new Set(result.data.tree.map(e=>e.path.split('/')[0]).filter(e=>e[0]!="."&e!="vendor"&!e.split("").includes(".")).sort())]
     }
   }
   getGit() //get the REPL directory listing as JSON
@@ -361,6 +361,9 @@
     width: 100%;
     height: 300px;
   }
+  :global(.left, .right){
+    padding:20px
+  }
 </style>
 
 {#if inputs.combined}
@@ -370,7 +373,7 @@
     updateCallback={() => {
       console.log('VSplitPane Updated!')
     }}>
-    <left slot="left">
+    <left slot="left" class="splitScreen">
       <span id="accessibleSummary" class="visuallyhidden" />
       {#if inputs.config.elements.select}
         <div id="select" />
@@ -390,7 +393,7 @@
       <div id="graph" />
     </left>
 
-    <right slot="right">
+    <right slot="right" class="splitScreen">
       <b color="#0f8243">
         <a
           href="https://docs.google.com/spreadsheets/d/1qlDgJIJCdumMRwLmI1_KF4yAKwtDoHmToYKEwZMq_zU/edit?usp=sharing"
