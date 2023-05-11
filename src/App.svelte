@@ -3,8 +3,9 @@
   import { Octokit } from 'octokit'
   import { HSplitPane } from 'svelte-split-pane'
   import cssToJS from 'transform-css-to-js'
-  const root = 'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' //where this app is getting stuff from on GitHub
+  //const root = 'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' //where this app is getting stuff from on GitHub
   //charts is simply a list of names of current templates available on the ONSvisual/census-charts GitHub repo. It can be added to. Bad charts could be commented out before they are fixed.
+  const root = 'https://raw.githubusercontent.com/ONSvisual/Charts/chart-build-preview/'
   let menuItems;
   const octokit = new Octokit({
     auth: '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',
@@ -25,7 +26,7 @@
       'GET /repos/{owner}/{repo}/git/trees/main?recursive=1',
       {
         owner: 'ONSvisual',
-        repo: 'all-charts-before',
+        repo: 'Charts',
       },
     )
     if (result) {
@@ -171,11 +172,11 @@
   //SIMPLE FUNCTIONS
   const comments = new RegExp('//.*', 'mg') //this regex can strip out commented out lines from .js files
   //END OF - SIMPLE FUNCTIONS
-
+let suffix='?token=GHSAT0AAAAAACCIIGLXPO5PWY6A6YRVGZBWZC4UEHQ'
   let getTemplate = (string) =>
     fetch(
       //getTemlate follows this order of getting: Config_then_JS_then_CSV_then_CSS. It cleans them up as it progresses
-      `${root}${string}/config.js`,
+      `${root}${string}/config.js${suffix}`,
     )
       .then((res) => res.text())
       .then((config) =>
@@ -212,21 +213,22 @@
               "('#graphic');let config=" + JSON.stringify(inputs['config']), //And next we add the config into the js script
             )
             fetch(
-              `${root}${string}/data.csv`, //Now we get the csv string
+              `${root}${string}/data.csv${suffix}`, //Now we get the csv string
             )
               .then((res) => res.text())
               .then((txt) => {
                 //console.log("GOTTO_1")
                 csv = txt //And save it to the csv variable
                 fetch(
-                  `${root}${string}/chart.css`, //finally we get any custom CSS
+                  `${root}${string}/chart.css${suffix}`, //finally we get any custom CSS
                 )
                   .then((res) => res.text())
                   .then((txt) => {
                     fetch(
                       'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' +
                         string +
-                        '/index.html',
+                        '/index.html' + 
+                        suffix
                     )
                       .then((res) => res.text())
                       .then((text) => (inputs['markup'] = text))
