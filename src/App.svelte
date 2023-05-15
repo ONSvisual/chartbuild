@@ -2,11 +2,13 @@
   import { onMount } from 'svelte'
   import { Octokit } from 'octokit'
   import { HSplitPane } from 'svelte-split-pane'
-  import cssToJS from 'transform-css-to-js'
+  import { toCSS, toJSON } from 'cssjson'
+
   //const root = 'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' //where this app is getting stuff from on GitHub
   //charts is simply a list of names of current templates available on the ONSvisual/census-charts GitHub repo. It can be added to. Bad charts could be commented out before they are fixed.
-  const root = 'https://raw.githubusercontent.com/ONSvisual/Charts/chart-build-preview/'
-  let menuItems;
+  const root =
+    'https://raw.githubusercontent.com/ONSvisual/Charts/chart-build-preview/'
+  let menuItems
   const octokit = new Octokit({
     auth: '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',
   })
@@ -34,36 +36,45 @@
       libTree = tree.filter((e) => e.path.startsWith('lib/')).map((e) => e.path)
       localStorage.gitTree = JSON.stringify(tree)
       localStorage.libTree = libTree
-    //  if (!localStorage.libFiles)
-        libTree.forEach((path) =>
-          fetch(root + path)
-            .then((res) => res.text())
-            .then((text) => (libFiles[path] = text))
-            .then((e) => (localStorage.libFiles = JSON.stringify(libFiles))),
-        )
+      //  if (!localStorage.libFiles)
+      libTree.forEach((path) =>
+        fetch(root + path)
+          .then((res) => res.text())
+          .then((text) => (libFiles[path] = text))
+          .then((e) => (localStorage.libFiles = JSON.stringify(libFiles))),
+      )
       console.log('Tree', result.data)
-      menuItems=[...new Set(result.data.tree.map(e=>e.path.split('/')[0]).filter(e=>e[0]!="."&e!="vendor"&!e.split("").includes(".")).sort())]
+      menuItems = [
+        ...new Set(
+          result.data.tree
+            .map((e) => e.path.split('/')[0])
+            .filter(
+              (e) =>
+                (e[0] != '.') & (e != 'vendor') & !e.split('').includes('.'),
+            )
+            .sort(),
+        ),
+      ]
     }
   }
   getGit() //get the REPL directory listing as JSON
 
-  function filterTreeAndFetchFiles(){
-    let filteredTree=tree.filter(e=>e.path.startsWith(chart + "/"))
-    let filesToFetch=filteredTree.map(el=>el.path)
-    console.log("filteredTree",filteredTree)
-    console.log("filesToFetch",filesToFetch)
-    filesToFetch.forEach(e=>{
+  function filterTreeAndFetchFiles() {
+    let filteredTree = tree.filter((e) => e.path.startsWith(chart + '/'))
+    let filesToFetch = filteredTree.map((el) => el.path)
+    console.log('filteredTree', filteredTree)
+    console.log('filesToFetch', filesToFetch)
+    filesToFetch.forEach((e) => {
       fetch(
-      //getTemlate follows this order of getting: Config_then_JS_then_CSV_then_CSS. It cleans them up as it progresses
-      `https://raw.githubusercontent.com/ONSvisual/all-charts-before/main/${e}?token=GHSAT0AAAAAACAH6U6TNLKNUN6ND5ZX5636ZBOOWWQ`,
-      //https://raw.githubusercontent.com/ONSvisual/all-charts-before/main/slope/config.json
-    )
-      .then((res) => res.text())
-      .then((fileContent) => console.log(e, fileContent))
-    }
-    )
+        //getTemlate follows this order of getting: Config_then_JS_then_CSV_then_CSS. It cleans them up as it progresses
+        `https://raw.githubusercontent.com/ONSvisual/all-charts-before/main/${e}?token=GHSAT0AAAAAACAH6U6TNLKNUN6ND5ZX5636ZBOOWWQ`,
+        //https://raw.githubusercontent.com/ONSvisual/all-charts-before/main/slope/config.json
+      )
+        .then((res) => res.text())
+        .then((fileContent) => console.log(e, fileContent))
+    })
   }
-  $: console.log(libTree, libFiles)
+  //$: console.log(libTree, libFiles)
 
   let d3Format = [
     ['35.792 => 36', '.0f'],
@@ -172,7 +183,7 @@
   //SIMPLE FUNCTIONS
   const comments = new RegExp('//.*', 'mg') //this regex can strip out commented out lines from .js files
   //END OF - SIMPLE FUNCTIONS
-let suffix='?token=GHSAT0AAAAAACCIIGLXPO5PWY6A6YRVGZBWZC4UEHQ'
+  let suffix = '?token=GHSAT0AAAAAACCIIGLXPO5PWY6A6YRVGZBWZC4UEHQ'
   let getTemplate = (string) =>
     fetch(
       //getTemlate follows this order of getting: Config_then_JS_then_CSV_then_CSS. It cleans them up as it progresses
@@ -208,10 +219,7 @@ let suffix='?token=GHSAT0AAAAAACCIIGLXPO5PWY6A6YRVGZBWZC4UEHQ'
           .then((res) => res.text())
           .then((txt) => {
             js = txt
-            combined = txt.replace(
-              "('#graphic');",
-              "('#graphic');let config=" + JSON.stringify(inputs['config']), //And next we add the config into the js script
-            )
+
             fetch(
               `${root}${string}/data.csv${suffix}`, //Now we get the csv string
             )
@@ -224,20 +232,32 @@ let suffix='?token=GHSAT0AAAAAACCIIGLXPO5PWY6A6YRVGZBWZC4UEHQ'
                 )
                   .then((res) => res.text())
                   .then((txt) => {
+                    css = txt //and save the custom CSS to the css variable, though it might need to be injected somewhere?
                     fetch(
                       'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' +
                         string +
-                        '/index.html' + 
-                        suffix
+                        '/index.html' +
+                        suffix,
                     )
                       .then((res) => res.text())
                       .then((text) => (inputs['markup'] = text))
                       .then((next) => {
-                        css = txt //and save the custom CSS to the css variable, though it might need to be injected somewhere?
+                        let cssJSON = toJSON(css)
+                        let JSONcss = toCSS(cssJSON)
+                        let json = {}
+                        Object.keys(cssJSON.children).forEach(
+                          (e) => (json[e] = cssJSON.children[e].attributes),
+                        )
                         inputs.chartType = string
                         inputs.css = css
                         inputs.csv = csv
                         inputs.js = js
+                        inputs.config.css = json
+                        combined = js.replace(
+                          "('#graphic');",
+                          "('#graphic');let config=" +
+                            JSON.stringify(inputs['config']), //And next we add the config into the js script
+                        )
                         inputs.combined = combined
                         sessionStorage[string] = JSON.stringify(inputs)
                         gotJavaScript(inputs)
@@ -293,7 +313,99 @@ let suffix='?token=GHSAT0AAAAAACCIIGLXPO5PWY6A6YRVGZBWZC4UEHQ'
   onMount(setTimeout(() => renderCode(), 1000))
 </script>
 
+<style>
+  input[type='number'] {
+    width: 50px;
+    margin-right: 30px;
+  }
+  .full {
+    width: 95%;
+    padding: 5px;
+  }
 
+  :global(body) {
+    max-width: 100vw;
+  }
+
+  .tablewrapper {
+    height: 150px;
+    overflow: scroll;
+    border: 1px solid black;
+  }
+
+  thead tr {
+    background-color: #206095;
+    color: #ffffff;
+    text-align: middle;
+  }
+  th,
+  td {
+    padding: 5px;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #dddddd;
+  }
+
+  tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+  }
+
+  tbody tr:last-of-type {
+    border-bottom: 2px solid #206095;
+  }
+
+  select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    font-family: inherit;
+    font-size: inherit;
+    -webkit-padding: 0.4em 0;
+    padding: 0.4em;
+    margin: 0 0 0.5em 0;
+    box-sizing: border-box;
+    border: 2px solid #5a5a5a;
+    border-radius: 2px;
+    font-weight: bolder;
+    max-width: 99%;
+    background: transparent;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='8 4 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l10 10 10-10z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+    background-repeat: no-repeat;
+    background-position-x: 100%;
+    background-position-y: 5px;
+  }
+  h3 {
+    margin-bottom: 5px;
+    margin-top: 10px;
+  }
+  h4 {
+    margin-bottom: 5px;
+    margin-top: 10px;
+    color: #999797;
+  }
+  hr {
+    width: 90%;
+    text-align: left;
+    margin-left: 5%;
+    height: 5px;
+    background: rgb(252, 237, 249);
+    border: none;
+  }
+  label {
+    margin-left: 15px;
+  }
+  .css {
+    width: 100%;
+    height: 300px;
+  }
+  :global(.left, .right) {
+    padding: 20px;
+  }
+  :global(.highlighted) {
+    outline: solid;
+  }
+</style>
 
 {#if inputs.combined}
   <Head headContent={inputs.css} />
@@ -337,14 +449,14 @@ let suffix='?token=GHSAT0AAAAAACCIIGLXPO5PWY6A6YRVGZBWZC4UEHQ'
           <option value={chart}>{tidyList(chart)}</option>
         {/each}
       </select>
-  <!--  <h3 style:color="slategrey">full menu</h3>
+      <!--  <h3 style:color="slategrey">full menu</h3>
       {#if menuItems}
       <select class="full" bind:value={chart} on:change={filterTreeAndFetchFiles}>
         {#each menuItems as chart}
           <option value={chart}>{tidyList(chart)}</option>
         {/each}
       </select>
-      {/if}-->  
+      {/if}-->
       {#if columns && inputs.config.essential}
         <a
           href={inputs.config.essential.graphic_data_url}
@@ -364,26 +476,26 @@ let suffix='?token=GHSAT0AAAAAACCIIGLXPO5PWY6A6YRVGZBWZC4UEHQ'
           value={inputs.config.essential.graphic_data_url} />
         <h3 style:color="slategrey">example data</h3>
 
-          <table>
-            <thead>
-              <tr>
-                {#each columns as d}
-                  <th>{d}</th>
-                {/each}
-              </tr>
-            </thead>
-            <tbody>
-              {#each data as d, i}
-              {#if i<1}
+        <table>
+          <thead>
+            <tr>
+              {#each columns as d}
+                <th>{d}</th>
+              {/each}
+            </tr>
+          </thead>
+          <tbody>
+            {#each data as d, i}
+              {#if i < 1}
                 <tr>
                   {#each columns as e}
                     <td>{d[e]}</td>
                   {/each}
                 </tr>
-              {/if}{/each}
-            </tbody>
-          </table>
-
+              {/if}
+            {/each}
+          </tbody>
+        </table>
       {/if}
 
       {#each Object.keys(inputs.config) as main, i}
@@ -391,7 +503,25 @@ let suffix='?token=GHSAT0AAAAAACCIIGLXPO5PWY6A6YRVGZBWZC4UEHQ'
           <h1 style:color="#666">config: {main}</h1>
           {#each Object.keys(inputs.config[main]) as sub, ii}
             {#if sub !== 'graphic_data_url'}
-              <h3 style:color="slategrey">{sub}</h3>
+              {#if main == 'css'}
+                <h3
+                  style:color="slategrey"
+                  on:mouseover={document
+                    .querySelectorAll(sub)
+                    .forEach((element) => {
+                      element.classList.add('highlighted')
+                    })}
+                  on:mouseout={document
+                    .querySelectorAll(sub)
+                    .forEach((element) => {
+                      element.classList.remove('highlighted')
+                    })}>
+                  {sub}
+                </h3>
+              {:else}
+                <h3 style:color="slategrey">{sub}</h3>
+              {/if}
+
               {#if inputs.config.chart_build}
                 {#if inputs.config.chart_build[sub] == 'number'}
                   <input
@@ -484,18 +614,19 @@ let suffix='?token=GHSAT0AAAAAACCIIGLXPO5PWY6A6YRVGZBWZC4UEHQ'
                             value={inputs.config[main][sub][subsub][subsubsub]} />
                         {/each}
                       </div>
-                    {:else}
+                    {:else if main=="css"}
                       <label for={'field_' + subsub} class="label">
                         {subsub}:
                       </label>
                       <input
-                        type="number"
+                        type="text"
                         class="full"
-                        id="field_{subsub}"
+                        id="field_css_{sub}_{subsub}"
                         on:change={(e) => {
                           inputs.config[main][sub][subsub] = e.target.value
                           sessionStorage[chart] = JSON.stringify(inputs)
-                          updateCode(inputs)
+                          inputs.css=toCSS(inputs.config.css)
+                          updateCode(inputs)//NEED TO ADD NEW CSS * ** *** ****
                         }}
                         value={inputs.config[main][sub][subsub]} />
                     {/if}
@@ -650,94 +781,4 @@ let suffix='?token=GHSAT0AAAAAACCIIGLXPO5PWY6A6YRVGZBWZC4UEHQ'
     </right>
   </HSplitPane>
 {/if}
-
-<style>
-  input[type='number'] {
-    width: 50px;
-    margin-right: 30px;
-  }
-  .full {
-    width: 95%;
-    padding: 5px;
-  }
-
-  :global(body) {
-    max-width: 100vw;
-  }
-
-  .tablewrapper {
-    height: 150px;
-    overflow: scroll;
-    border: 1px solid black;
-  }
-
-  thead tr {
-    background-color: #206095;
-    color: #ffffff;
-    text-align: middle;
-  }
-  th,
-  td {
-    padding: 5px;
-  }
-
-  tbody tr {
-    border-bottom: 1px solid #dddddd;
-  }
-
-  tbody tr:nth-of-type(even) {
-    background-color: #f3f3f3;
-  }
-
-  tbody tr:last-of-type {
-    border-bottom: 2px solid #206095;
-  }
-
-  select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    font-family: inherit;
-    font-size: inherit;
-    -webkit-padding: 0.4em 0;
-    padding: 0.4em;
-    margin: 0 0 0.5em 0;
-    box-sizing: border-box;
-    border: 2px solid #5a5a5a;
-    border-radius: 2px;
-    font-weight: bolder;
-    max-width: 99%;
-    background: transparent;
-    background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='8 4 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l10 10 10-10z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
-    background-repeat: no-repeat;
-    background-position-x: 100%;
-    background-position-y: 5px;
-  }
-  h3 {
-    margin-bottom: 5px;
-    margin-top: 10px;
-  }
-  h4 {
-    margin-bottom: 5px;
-    margin-top: 10px;
-    color: #999797;
-  }
-  hr {
-    width: 90%;
-    text-align: left;
-    margin-left: 5%;
-    height: 5px;
-    background: rgb(252, 237, 249);
-    border: none;
-  }
-  label {
-    margin-left: 15px;
-  }
-  .css {
-    width: 100%;
-    height: 300px;
-  }
-  :global(.left, .right){
-    padding:20px
-  }
-</style>
+<div class="highlighted" style="width:0; height:0;" />
