@@ -2,10 +2,13 @@
   import { onMount } from 'svelte'
   import { Octokit } from 'octokit'
   import { HSplitPane } from 'svelte-split-pane'
-  import cssToJS from 'transform-css-to-js'
-  const root = 'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' //where this app is getting stuff from on GitHub
-  //charts is simply a list of names of current templates available on the ONSvisual/census-charts GitHub repo. It can be added to. Bad charts could be commented out before they are fixed.
+  import { toCSS, toJSON } from 'cssjson'
 
+  //const root = 'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' //where this app is getting stuff from on GitHub
+  //charts is simply a list of names of current templates available on the ONSvisual/census-charts GitHub repo. It can be added to. Bad charts could be commented out before they are fixed.
+  const root =
+    'https://raw.githubusercontent.com/ONSvisual/Charts/main/'
+  let menuItems
   const octokit = new Octokit({
     auth: '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',
   })
@@ -25,27 +28,54 @@
       'GET /repos/{owner}/{repo}/git/trees/main?recursive=1',
       {
         owner: 'ONSvisual',
-        repo: 'all-charts-before',
+        repo: 'Charts',
       },
     )
     if (result) {
+      console.log("result",result)
       tree = result.data.tree
       libTree = tree.filter((e) => e.path.startsWith('lib/')).map((e) => e.path)
       localStorage.gitTree = JSON.stringify(tree)
       localStorage.libTree = libTree
-      if (!localStorage.libFiles)
-        libTree.forEach((path) =>
-          fetch(root + path)
-            .then((res) => res.text())
-            .then((text) => (libFiles[path] = text))
-            .then((e) => (localStorage.libFiles = JSON.stringify(libFiles))),
-        )
-      console.log('RESULT', result)
+      //  if (!localStorage.libFiles)
+      libTree.forEach((path) =>
+        fetch(root + path)
+          .then((res) => res.text())
+          .then((text) => (libFiles[path] = text))
+          .then((e) => (localStorage.libFiles = JSON.stringify(libFiles))),
+      )
+      console.log('Tree', result.data)
+      menuItems = [
+        ...new Set(
+          result.data.tree
+            .map((e) => e.path.split('/')[0])
+            .filter(
+              (e) =>
+                (e[0] != '.') & (e != 'vendor') & !e.split('').includes('.'),
+            )
+            .sort(),
+        ),
+      ]
     }
   }
   getGit() //get the REPL directory listing as JSON
 
-  $: console.log(libTree, libFiles)
+  function filterTreeAndFetchFiles() {
+    let filteredTree = tree.filter((e) => e.path.startsWith(chart + '/'))
+    let filesToFetch = filteredTree.map((el) => el.path)
+    console.log('filteredTree', filteredTree)
+    console.log('filesToFetch', filesToFetch)
+    filesToFetch.forEach((e) => {
+      fetch(
+        //getTemlate follows this order of getting: Config_then_JS_then_CSV_then_CSS. It cleans them up as it progresses
+        `https://raw.githubusercontent.com/ONSvisual/all-charts-before/main/${e}?token=GHSAT0AAAAAACAH6U6TNLKNUN6ND5ZX5636ZBOOWWQ`,
+        //https://raw.githubusercontent.com/ONSvisual/all-charts-before/main/slope/config.json
+      )
+        .then((res) => res.text())
+        .then((fileContent) => console.log(e, fileContent))
+    })
+  }
+  //$: console.log(libTree, libFiles)
 
   let d3Format = [
     ['35.792 => 36', '.0f'],
@@ -117,7 +147,11 @@
   }
 
   const charts = [
-    'bar-chart',
+    'bar-chart-horizontal-sm',
+    'bar-chart-horizontal-split',
+    'bar-chart-horizontal-stacked-sm',
+    'bar-chart-horizontal',
+    'bubble-chart-animated',
     'comet-plot',
     'dot-plot',
     'grouped-bar-chart',
@@ -125,6 +159,7 @@
     'heatmap',
     'range-plot',
     'split-bar-chart',
+    'scatter-plot-animated',
     'stacked-horizontal-bar-chart',
     'static-population-pyramid-with-comparison',
     'static-population-pyramid',
@@ -154,17 +189,17 @@
   //SIMPLE FUNCTIONS
   const comments = new RegExp('//.*', 'mg') //this regex can strip out commented out lines from .js files
   //END OF - SIMPLE FUNCTIONS
-
+  let suffix = '?token=GHSAT0AAAAAACCIIGLXPO5PWY6A6YRVGZBWZC4UEHQ'
   let getTemplate = (string) =>
     fetch(
       //getTemlate follows this order of getting: Config_then_JS_then_CSV_then_CSS. It cleans them up as it progresses
-      `${root}${string}/config.js`,
+      `${root}${string}/config.js${suffix}`,
     )
       .then((res) => res.text())
       .then((config) =>
         config
           .replace(/([^{]+)/, '') //all this cleaning is because config is not a clean JSON file
-          .replace(/{/, '{"elements":{"select":0, "nav":0, "legend":0},')
+         // .replace(/{/, '{"elements":{"select":0, "nav":0, "legend":0},')
           .replace(comments, '\n')
           .replace(/;/g, '')
           .replace('data.csv', `${root}${string}/data.csv`) // <--- THIS IS SCREWING UP THE CHANGE OF CSV FILE
@@ -181,7 +216,7 @@
         try {
           JSON.parse(cleaned)
         } catch (e) {
-          console.log(e)
+          console.log(e, cleaned)
         }
         inputs['config'] = JSON.parse(cleaned) // DO make it into a JSON object!
         fetch(
@@ -190,35 +225,45 @@
           .then((res) => res.text())
           .then((txt) => {
             js = txt
-            combined = txt.replace(
-              "('#graphic');",
-              "('#graphic');let config=" + JSON.stringify(inputs['config']), //And next we add the config into the js script
-            )
+
             fetch(
-              `${root}${string}/data.csv`, //Now we get the csv string
+              `${root}${string}/data.csv${suffix}`, //Now we get the csv string
             )
               .then((res) => res.text())
               .then((txt) => {
                 //console.log("GOTTO_1")
                 csv = txt //And save it to the csv variable
                 fetch(
-                  `${root}${string}/chart.css`, //finally we get any custom CSS
+                  `${root}${string}/chart.css${suffix}`, //finally we get any custom CSS
                 )
                   .then((res) => res.text())
                   .then((txt) => {
+                    css = txt //and save the custom CSS to the css variable, though it might need to be injected somewhere?
                     fetch(
-                      'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' +
+                      root +
                         string +
-                        '/index.html',
+                        '/index.html' +
+                        suffix,
                     )
                       .then((res) => res.text())
                       .then((text) => (inputs['markup'] = text))
                       .then((next) => {
-                        css = txt //and save the custom CSS to the css variable, though it might need to be injected somewhere?
+                        let cssJSON = toJSON(css)
+                        let JSONcss = toCSS(cssJSON)
+                        let json = {}
+                        Object.keys(cssJSON.children).forEach(
+                          (e) => (json[e] = cssJSON.children[e].attributes),
+                        )
                         inputs.chartType = string
                         inputs.css = css
                         inputs.csv = csv
                         inputs.js = js
+                        inputs.config.css = json
+                        combined = js.replace(
+                          "('#graphic');",
+                          "('#graphic');let config=" +
+                            JSON.stringify(inputs['config']), //And next we add the config into the js script
+                        )
                         inputs.combined = combined
                         sessionStorage[string] = JSON.stringify(inputs)
                         gotJavaScript(inputs)
@@ -295,9 +340,9 @@
   }
 
   thead tr {
-    background-color: rgb(59, 59, 59);
+    background-color: #206095;
     color: #ffffff;
-    text-align: left;
+    text-align: middle;
   }
   th,
   td {
@@ -360,6 +405,12 @@
     width: 100%;
     height: 300px;
   }
+  :global(.left, .right) {
+    padding: 20px;
+  }
+  :global(.highlighted) {
+    outline: solid;
+  }
 </style>
 
 {#if inputs.combined}
@@ -369,7 +420,7 @@
     updateCallback={() => {
       console.log('VSplitPane Updated!')
     }}>
-    <left slot="left">
+    <left slot="left" class="splitScreen">
       <span id="accessibleSummary" class="visuallyhidden" />
       {#if inputs.config.elements.select}
         <div id="select" />
@@ -389,7 +440,7 @@
       <div id="graph" />
     </left>
 
-    <right slot="right">
+    <right slot="right" class="splitScreen">
       <b color="#0f8243">
         <a
           href="https://docs.google.com/spreadsheets/d/1qlDgJIJCdumMRwLmI1_KF4yAKwtDoHmToYKEwZMq_zU/edit?usp=sharing"
@@ -404,7 +455,14 @@
           <option value={chart}>{tidyList(chart)}</option>
         {/each}
       </select>
-
+      <!--  <h3 style:color="slategrey">full menu</h3>
+      {#if menuItems}
+      <select class="full" bind:value={chart} on:change={filterTreeAndFetchFiles}>
+        {#each menuItems as chart}
+          <option value={chart}>{tidyList(chart)}</option>
+        {/each}
+      </select>
+      {/if}-->
       {#if columns && inputs.config.essential}
         <a
           href={inputs.config.essential.graphic_data_url}
@@ -422,27 +480,28 @@
             updateCode(inputs)
           }}
           value={inputs.config.essential.graphic_data_url} />
-        <h3 style:color="slategrey">data preview</h3>
-        <div class="tablewrapper">
-          <table>
-            <thead>
-              <tr>
-                {#each columns as d}
-                  <th>{d}</th>
-                {/each}
-              </tr>
-            </thead>
-            <tbody>
-              {#each data as d}
+        <h3 style:color="slategrey">example data</h3>
+
+        <table>
+          <thead>
+            <tr>
+              {#each columns as d}
+                <th>{d}</th>
+              {/each}
+            </tr>
+          </thead>
+          <tbody>
+            {#each data as d, i}
+              {#if i < 1}
                 <tr>
                   {#each columns as e}
                     <td>{d[e]}</td>
                   {/each}
                 </tr>
-              {/each}
-            </tbody>
-          </table>
-        </div>
+              {/if}
+            {/each}
+          </tbody>
+        </table>
       {/if}
 
       {#each Object.keys(inputs.config) as main, i}
@@ -450,7 +509,25 @@
           <h1 style:color="#666">config: {main}</h1>
           {#each Object.keys(inputs.config[main]) as sub, ii}
             {#if sub !== 'graphic_data_url'}
-              <h3 style:color="slategrey">{sub}</h3>
+              {#if main == 'css'}
+                <h3
+                  style:color="slategrey"
+                  on:mouseover={document
+                    .querySelectorAll(sub)
+                    .forEach((element) => {
+                      element.classList.add('highlighted')
+                    })}
+                  on:mouseout={document
+                    .querySelectorAll(sub)
+                    .forEach((element) => {
+                      element.classList.remove('highlighted')
+                    })}>
+                  {sub}
+                </h3>
+              {:else}
+                <h3 style:color="slategrey">{sub}</h3>
+              {/if}
+
               {#if inputs.config.chart_build}
                 {#if inputs.config.chart_build[sub] == 'number'}
                   <input
@@ -543,18 +620,19 @@
                             value={inputs.config[main][sub][subsub][subsubsub]} />
                         {/each}
                       </div>
-                    {:else}
+                    {:else if main=="css"}
                       <label for={'field_' + subsub} class="label">
                         {subsub}:
                       </label>
                       <input
-                        type="number"
+                        type="text"
                         class="full"
-                        id="field_{subsub}"
+                        id="field_css_{sub}_{subsub}"
                         on:change={(e) => {
                           inputs.config[main][sub][subsub] = e.target.value
                           sessionStorage[chart] = JSON.stringify(inputs)
-                          updateCode(inputs)
+                          inputs.css=toCSS(inputs.config.css)
+                          updateCode(inputs)//NEED TO ADD NEW CSS * ** *** ****
                         }}
                         value={inputs.config[main][sub][subsub]} />
                     {/if}
@@ -709,3 +787,4 @@
     </right>
   </HSplitPane>
 {/if}
+<div class="highlighted" style="width:0; height:0;" />
