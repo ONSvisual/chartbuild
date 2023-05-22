@@ -14,7 +14,7 @@
     privateKey:"Iv1.15a31c21d3cd0dc5"
   })
   
-
+console.log(app)
   //import IndexText from './IndexText.svelte'
   import Head from './Head.svelte'
   import { tsvParse, csvParse, tsvFormat, csvFormat } from 'd3-dsv'
@@ -29,14 +29,12 @@
     const octokit = await app.getInstallationOctokit(8758367)
     if(octokit){
     console.log('ockto', octokit)
-    const result = await octokit.request(
-      'GET /repos/{owner}/{repo}/git/trees/main?recursive=1',
-      {
-        owner: 'ONSvisual',
-        repo: 'Charts',
-      },
-    )
-    if (result) {
+    let result;
+    await fetch(
+      'https://api.github.com/repos/ONSvisual/Charts/git/trees/main?recursive=1'
+    ).then(res=>result=res.text()).then(result=>
+    {
+
       console.log("result",result)
       tree = result.data.tree
       libTree = tree.filter((e) => e.path.startsWith('lib/')).map((e) => e.path)
@@ -61,7 +59,7 @@
             .sort(),
         ),
       ]
-    }
+    })
   }
 }
   getGit() //get the REPL directory listing as JSON
