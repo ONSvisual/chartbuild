@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte'
-  import { Octokit } from 'octokit'
+  import { App } from 'octokit'
   import { HSplitPane } from 'svelte-split-pane'
   import { toCSS, toJSON } from 'cssjson'
 
@@ -9,11 +9,12 @@
   const root =
     'https://raw.githubusercontent.com/ONSvisual/Charts/main/'
   let menuItems
-  const octokit = new Octokit({
-    auth: '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',
+  const app = new App({
+    appId:337269,
+    privateKey:"Iv1.15a31c21d3cd0dc5"
   })
-
-  console.log('ockto', octokit)
+  
+console.log(app)
   //import IndexText from './IndexText.svelte'
   import Head from './Head.svelte'
   import { tsvParse, csvParse, tsvFormat, csvFormat } from 'd3-dsv'
@@ -24,16 +25,18 @@
     libFiles = {}
 
   async function getGit() {
-    const result = await octokit.request(
-      'GET /repos/{owner}/{repo}/git/trees/main?recursive=1',
-      {
-        owner: 'ONSvisual',
-        repo: 'Charts',
-      },
-    )
-    if (result) {
+
+    const octokit = await app.getInstallationOctokit(8758367)
+    if(octokit){
+    console.log('ockto', octokit)
+    let result;
+    await fetch(
+      'https://api.github.com/repos/ONSvisual/Charts/git/trees/main?recursive=1'
+    ).then(res=>result=res.json()).then(result=>
+    {
+
       console.log("result",result)
-      tree = result.data.tree
+      tree = result.tree
       libTree = tree.filter((e) => e.path.startsWith('lib/')).map((e) => e.path)
       localStorage.gitTree = JSON.stringify(tree)
       localStorage.libTree = libTree
@@ -44,10 +47,10 @@
           .then((text) => (libFiles[path] = text))
           .then((e) => (localStorage.libFiles = JSON.stringify(libFiles))),
       )
-      console.log('Tree', result.data)
+      console.log('Tree', tree)
       menuItems = [
         ...new Set(
-          result.data.tree
+          tree
             .map((e) => e.path.split('/')[0])
             .filter(
               (e) =>
@@ -56,8 +59,9 @@
             .sort(),
         ),
       ]
-    }
+    })
   }
+}
   getGit() //get the REPL directory listing as JSON
 
   function filterTreeAndFetchFiles() {
@@ -68,7 +72,7 @@
     filesToFetch.forEach((e) => {
       fetch(
         //getTemlate follows this order of getting: Config_then_JS_then_CSV_then_CSS. It cleans them up as it progresses
-        `https://raw.githubusercontent.com/ONSvisual/all-charts-before/main/${e}?token=GHSAT0AAAAAACAH6U6TNLKNUN6ND5ZX5636ZBOOWWQ`,
+        `https://raw.githubusercontent.com/ONSvisual/all-charts-before/main/${e}`,
         //https://raw.githubusercontent.com/ONSvisual/all-charts-before/main/slope/config.json
       )
         .then((res) => res.text())
@@ -300,7 +304,9 @@
     if (document.getElementById('legend'))
       document.getElementById('legend').innerHTML = ''
     let func = () => {}
-    func = Function(inputs['combined'])
+ 
+    if (inputs['combined'].length) func = Function(inputs['combined'])
+
     func()
   }
 
@@ -416,10 +422,7 @@
 {#if inputs.combined}
   <Head headContent={inputs.css} />
 
-  <HSplitPane
-    updateCallback={() => {
-      console.log('VSplitPane Updated!')
-    }}>
+  <HSplitPane>
     <left slot="left" class="splitScreen">
       <span id="accessibleSummary" class="visuallyhidden" />
       {#if inputs.config.elements.select}
@@ -776,6 +779,7 @@
           {/each}
         {/if}
       {/each}
+      {#if inputs.css}
       <textarea
         class="css"
         bind:value={inputs.css}
@@ -784,6 +788,7 @@
           sessionStorage[chart] = JSON.stringify(inputs)
           updateCode(inputs)
         }} />
+        {/if}
     </right>
   </HSplitPane>
 {/if}
