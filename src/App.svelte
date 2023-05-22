@@ -32,11 +32,11 @@ console.log(app)
     let result;
     await fetch(
       'https://api.github.com/repos/ONSvisual/Charts/git/trees/main?recursive=1'
-    ).then(res=>result=res.text()).then(result=>
+    ).then(res=>result=res.json()).then(result=>
     {
 
       console.log("result",result)
-      tree = result.data.tree
+      tree = result.tree
       libTree = tree.filter((e) => e.path.startsWith('lib/')).map((e) => e.path)
       localStorage.gitTree = JSON.stringify(tree)
       localStorage.libTree = libTree
@@ -47,10 +47,10 @@ console.log(app)
           .then((text) => (libFiles[path] = text))
           .then((e) => (localStorage.libFiles = JSON.stringify(libFiles))),
       )
-      console.log('Tree', result.data)
+      console.log('Tree', tree)
       menuItems = [
         ...new Set(
-          result.data.tree
+          tree
             .map((e) => e.path.split('/')[0])
             .filter(
               (e) =>
@@ -72,7 +72,7 @@ console.log(app)
     filesToFetch.forEach((e) => {
       fetch(
         //getTemlate follows this order of getting: Config_then_JS_then_CSV_then_CSS. It cleans them up as it progresses
-        `https://raw.githubusercontent.com/ONSvisual/all-charts-before/main/${e}?token=GHSAT0AAAAAACAH6U6TNLKNUN6ND5ZX5636ZBOOWWQ`,
+        `https://raw.githubusercontent.com/ONSvisual/all-charts-before/main/${e}`,
         //https://raw.githubusercontent.com/ONSvisual/all-charts-before/main/slope/config.json
       )
         .then((res) => res.text())
@@ -304,7 +304,9 @@ console.log(app)
     if (document.getElementById('legend'))
       document.getElementById('legend').innerHTML = ''
     let func = () => {}
-    func = Function(inputs['combined'])
+ 
+    if (inputs['combined'].length) func = Function(inputs['combined'])
+
     func()
   }
 
@@ -420,10 +422,7 @@ console.log(app)
 {#if inputs.combined}
   <Head headContent={inputs.css} />
 
-  <HSplitPane
-    updateCallback={() => {
-      console.log('VSplitPane Updated!')
-    }}>
+  <HSplitPane>
     <left slot="left" class="splitScreen">
       <span id="accessibleSummary" class="visuallyhidden" />
       {#if inputs.config.elements.select}
@@ -780,6 +779,7 @@ console.log(app)
           {/each}
         {/if}
       {/each}
+      {#if inputs.css}
       <textarea
         class="css"
         bind:value={inputs.css}
@@ -788,6 +788,7 @@ console.log(app)
           sessionStorage[chart] = JSON.stringify(inputs)
           updateCode(inputs)
         }} />
+        {/if}
     </right>
   </HSplitPane>
 {/if}
