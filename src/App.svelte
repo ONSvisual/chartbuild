@@ -7,7 +7,7 @@
   //const root = 'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' //where this app is getting stuff from on GitHub
   //charts is simply a list of names of current templates available on the ONSvisual/census-charts GitHub repo. It can be added to. Bad charts could be commented out before they are fixed.
   const root =
-    'https://raw.githubusercontent.com/ONSvisual/Charts/chart-build-preview/'
+    'https://raw.githubusercontent.com/ONSvisual/Charts/main/'
   let menuItems
   const octokit = new Octokit({
     auth: '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',
@@ -32,6 +32,7 @@
       },
     )
     if (result) {
+      console.log("result",result)
       tree = result.data.tree
       libTree = tree.filter((e) => e.path.startsWith('lib/')).map((e) => e.path)
       localStorage.gitTree = JSON.stringify(tree)
@@ -146,7 +147,11 @@
   }
 
   const charts = [
-    'bar-chart',
+    'bar-chart-horizontal-sm',
+    'bar-chart-horizontal-split',
+    'bar-chart-horizontal-stacked-sm',
+    'bar-chart-horizontal',
+    'bubble-chart-animated',
     'comet-plot',
     'dot-plot',
     'grouped-bar-chart',
@@ -154,6 +159,7 @@
     'heatmap',
     'range-plot',
     'split-bar-chart',
+    'scatter-plot-animated',
     'stacked-horizontal-bar-chart',
     'static-population-pyramid-with-comparison',
     'static-population-pyramid',
@@ -193,7 +199,7 @@
       .then((config) =>
         config
           .replace(/([^{]+)/, '') //all this cleaning is because config is not a clean JSON file
-          .replace(/{/, '{"elements":{"select":0, "nav":0, "legend":0},')
+         // .replace(/{/, '{"elements":{"select":0, "nav":0, "legend":0},')
           .replace(comments, '\n')
           .replace(/;/g, '')
           .replace('data.csv', `${root}${string}/data.csv`) // <--- THIS IS SCREWING UP THE CHANGE OF CSV FILE
@@ -210,7 +216,7 @@
         try {
           JSON.parse(cleaned)
         } catch (e) {
-          console.log(e)
+          console.log(e, cleaned)
         }
         inputs['config'] = JSON.parse(cleaned) // DO make it into a JSON object!
         fetch(
@@ -234,7 +240,7 @@
                   .then((txt) => {
                     css = txt //and save the custom CSS to the css variable, though it might need to be injected somewhere?
                     fetch(
-                      'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' +
+                      root +
                         string +
                         '/index.html' +
                         suffix,
