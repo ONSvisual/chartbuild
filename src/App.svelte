@@ -2,7 +2,7 @@
   import { onMount } from 'svelte'
   import { App } from 'octokit'
   import { HSplitPane } from 'svelte-split-pane'
-  import { toCSS, toJSON } from 'cssjson'
+  import { toCSS, toJSON } from './cssjson/cssjson'
 
   //const root = 'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' //where this app is getting stuff from on GitHub
   //charts is simply a list of names of current templates available on the ONSvisual/census-charts GitHub repo. It can be added to. Bad charts could be commented out before they are fixed.
