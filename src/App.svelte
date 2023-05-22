@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte'
-  import { Octokit } from 'octokit'
+  import { App } from 'octokit'
   import { HSplitPane } from 'svelte-split-pane'
   import { toCSS, toJSON } from 'cssjson'
 
@@ -9,10 +9,11 @@
   const root =
     'https://raw.githubusercontent.com/ONSvisual/Charts/main/'
   let menuItems
-  const octokit = new Octokit({
-    auth: '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',
+  const app = new App({
+    appId:307309,
+    privateKey:"Iv1.80b525cf657d2546"
   })
-
+  const octokit = await app.getInstallationOctokit(35426283);
   console.log('ockto', octokit)
   //import IndexText from './IndexText.svelte'
   import Head from './Head.svelte'
