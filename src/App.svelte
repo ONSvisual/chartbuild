@@ -10,11 +10,11 @@
     'https://raw.githubusercontent.com/ONSvisual/Charts/main/'
   let menuItems
   const app = new App({
-    appId:307309,
-    privateKey:"Iv1.80b525cf657d2546"
+    appId:337269,
+    privateKey:"Iv1.15a31c21d3cd0dc5"
   })
-  const octokit = await app.getInstallationOctokit(35426283);
-  console.log('ockto', octokit)
+  
+
   //import IndexText from './IndexText.svelte'
   import Head from './Head.svelte'
   import { tsvParse, csvParse, tsvFormat, csvFormat } from 'd3-dsv'
@@ -25,6 +25,10 @@
     libFiles = {}
 
   async function getGit() {
+
+    const octokit = await app.getInstallationOctokit(8758367)
+    if(octokit){
+    console.log('ockto', octokit)
     const result = await octokit.request(
       'GET /repos/{owner}/{repo}/git/trees/main?recursive=1',
       {
@@ -59,6 +63,7 @@
       ]
     }
   }
+}
   getGit() //get the REPL directory listing as JSON
 
   function filterTreeAndFetchFiles() {
