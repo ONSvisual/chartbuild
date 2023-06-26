@@ -159,6 +159,7 @@ console.log(app)
     'bar-chart-horizontal-stacked-clustered',
     'bar-chart-horizontal-stacked-grouped',
     'bar-chart-horizontal',
+    'line-chart',
     'comet-plot',
     'dot-plot',
     'grouped-bar-chart',
@@ -172,6 +173,7 @@ console.log(app)
     'population-pyramid-with-dropdown-and-interactive-comparison',
     'population-pyramid-with-dropdown',
     'population-pyramid-with-interactive-comparison',
+    'bar-chart-horizontal-grouped-clustered',
   ]
 
   let chart = 'split-bar-chart' //index in charts == 'bar-chart'
