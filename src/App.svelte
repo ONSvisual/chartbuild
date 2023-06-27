@@ -218,7 +218,7 @@
   console.log("Data stored in session storage:", sessionStorage.getItem('userChartData'));
   console.log("New data URL:", inputs.config.essential.graphic_data_url);
 
-  updateChart
+  updateChart(inputData)
 
 }
 
@@ -254,83 +254,74 @@ function updateChart(csvData) {
 	const comments = new RegExp('//.*', 'mg'); //this regex can strip out commented out lines from .js files
 	//END OF - SIMPLE FUNCTIONS
 	let suffix = '?token=GHSAT0AAAAAACCIIGLXPO5PWY6A6YRVGZBWZC4UEHQ';
-	let getTemplate = (string) =>
-		fetch(
-			//getTemlate follows this order of getting: Config_then_JS_then_CSV_then_CSS. It cleans them up as it progresses
-			`${root}${string}/config.js${suffix}`
-		)
-			.then((res) => res.text())
-			.then((config) =>
-				config
-					.replace(/([^{]+)/, '') //all this cleaning is because config is not a clean JSON file
-					// .replace(/{/, '{"elements":{"select":0, "nav":0, "legend":0},')
-					.replace(comments, '\n')
-					.replace(/;/g, '')
-					.replace('data.csv', `${root}${string}/data.csv`) // <--- THIS IS SCREWING UP THE CHANGE OF CSV FILE
-					.replace(/d3.*\n/, /"d3.*"\n/)
-					.replace('comparison.csv', `${root}${string}/comparison.csv`)
-					.replace(
-						'comparison-time.csv',
-						`${root}${string}/comparison-time.csv`
-					)
-			)
-			.then((cleaned) => {
-				//console.log(typeof(cleaned))
-				//console.log(cleaned)
-				try {
-					JSON.parse(cleaned);
-				} catch (e) {
-					console.log(e, cleaned);
-				}
-				inputs['config'] = JSON.parse(cleaned); // DO make it into a JSON object!
-				fetch(
-					`${root}${string}/script.js` //Now we fetch the .js script from the chart template - maybe this should be manipulable by pro users?
-				)
-					.then((res) => res.text())
-					.then((txt) => {
-						js = txt;
 
-						fetch(
-							`${root}${string}/data.csv${suffix}` //Now we get the csv string
-						)
-							.then((res) => res.text())
-							.then((txt) => {
-								//console.log("GOTTO_1")
-								csv = txt; //And save it to the csv variable
-								fetch(
-									`${root}${string}/chart.css${suffix}` //finally we get any custom CSS
-								)
-									.then((res) => res.text())
-									.then((txt) => {
-										css = txt; //and save the custom CSS to the css variable, though it might need to be injected somewhere?
-										fetch(root + string + '/index.html' + suffix)
-											.then((res) => res.text())
-											.then((text) => (inputs['markup'] = text))
-											.then((next) => {
-												let cssJSON = toJSON(css);
-												let JSONcss = toCSS(cssJSON);
-												let json = {};
-												Object.keys(cssJSON.children).forEach(
-													(e) => (json[e] = cssJSON.children[e].attributes)
-												);
-												inputs.chartType = string;
-												inputs.css = css;
-												inputs.csv = csv;
-												inputs.js = js;
-												inputs.config.css = json;
-												combined = js.replace(
-													"('#graphic');",
-													"('#graphic');let config=" +
-														JSON.stringify(inputs['config']) //And next we add the config into the js script
-												);
-												inputs.combined = combined;
-												sessionStorage[string] = JSON.stringify(inputs);
-												gotJavaScript(inputs);
-											});
-									});
-							});
-					});
-			});
+	// reworked this 
+	let getTemplate = (string) => {
+  return fetch(`${root}${string}/config.js${suffix}`)
+    .then((res) => res.text())
+    .then((config) => {
+      let cleaned = config
+        .replace(/([^{]+)/, '')
+        .replace(comments, '\n')
+        .replace(/;/g, '')
+        .replace('data.csv', `${root}${string}/data.csv`)
+        .replace(/d3.*\n/, /"d3.*"\n/)
+        .replace('comparison.csv', `${root}${string}/comparison.csv`)
+        .replace('comparison-time.csv', `${root}${string}/comparison-time.csv`);
+
+      try {
+        inputs['config'] = JSON.parse(cleaned);
+      } catch (e) {
+        console.log(e, cleaned);
+      }
+
+      return fetch(`${root}${string}/script.js`)
+        .then((res) => res.text())
+        .then((txt) => {
+          let js = txt;
+
+          return fetch(`${root}${string}/data.csv${suffix}`)
+            .then((res) => res.text())
+            .then((txt) => {
+              let csv = txt;
+
+              return fetch(`${root}${string}/chart.css${suffix}`)
+                .then((res) => res.text())
+                .then((txt) => {
+                  let css = txt;
+
+                  return fetch(`${root}${string}/index.html${suffix}`)
+                    .then((res) => res.text())
+                    .then((text) => {
+                      inputs['markup'] = text;
+
+                      let cssJSON = toJSON(css);
+                      let json = {};
+                      Object.keys(cssJSON.children).forEach(
+                        (e) => (json[e] = cssJSON.children[e].attributes)
+                      );
+
+                      inputs.chartType = string;
+                      inputs.css = css;
+                      inputs.csv = csv;
+                      inputs.js = js;
+                      inputs.config.css = json;
+
+                      let combined = js.replace(
+                        "('#graphic');",
+                        "('#graphic');let config=" + JSON.stringify(inputs['config'])
+                      );
+
+                      inputs.combined = combined;
+                      sessionStorage[string] = JSON.stringify(inputs);
+                      gotJavaScript(inputs);
+                    });
+                });
+            });
+        });
+    });
+};
+
 
 	//gotJavaScript checks if the script.js has been found and loaded from the GitHub repo, then hydrates it into the DOM ***IT NEEDS TO UPDATE ALL 4 FILES***
 	let updateCode = (inputs) => {
