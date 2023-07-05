@@ -151,6 +151,8 @@ console.log(app)
   }
 
   const charts = [
+    'area-stacked',
+    'area-stacked-sm',
     'bar-chart-horizontal-sm',
     'bar-chart-horizontal-split',
     'bar-chart-horizontal-stacked',
@@ -159,21 +161,22 @@ console.log(app)
     'bar-chart-horizontal-stacked-clustered',
     'bar-chart-horizontal-stacked-grouped',
     'bar-chart-horizontal',
+    'bar-chart-horizontal-grouped-clustered',
     'line-chart',
     'comet-plot',
+    'column-chart',
     'dot-plot',
     'grouped-bar-chart',
     'heatmap-per-column',
     'heatmap',
     'range-plot',
+    'scatter-plot',
     'split-bar-chart',
-    'stacked-horizontal-bar-chart',
-    'static-population-pyramid-with-comparison',
-    'static-population-pyramid',
+    'population-pyramid-static-with-comparison',
+    'population-pyramid-static',
+    'population-pyramid-with-comparison-toggle',
     'population-pyramid-with-dropdown-and-interactive-comparison',
     'population-pyramid-with-dropdown',
-    'population-pyramid-with-interactive-comparison',
-    'bar-chart-horizontal-grouped-clustered',
   ]
 
   let chart = 'split-bar-chart' //index in charts == 'bar-chart'
