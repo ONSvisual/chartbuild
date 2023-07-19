@@ -201,7 +201,7 @@
 
   //Tis function will then load the new data
 
-  function loadNewData() {
+function loadNewData() {
   // Store user data in sessionStorage
   sessionStorage.setItem('userChartData', inputData);
   
@@ -212,14 +212,21 @@
   let url = URL.createObjectURL(blob);
 
   // Update the graphic_data_url to point to the new data
-  inputs.config.essential.graphic_data_url = url;
+ inputs.config.essential.graphic_data_url = url;
+ 
+ // test code.s
+ inputs.csv = inputData;
   
   console.log("New data loaded, useInputData is now:", useInputData);
   console.log("Data stored in session storage:", sessionStorage.getItem('userChartData'));
   console.log("New data URL:", inputs.config.essential.graphic_data_url);
 
-  updateChart(inputData)
+updateChart(inputData)
+ 
 
+ //potential solution updateChart(inputs);
+
+  //console.log(url)
 }
 
 
@@ -353,23 +360,23 @@ function updateChart(csvData) {
 };
 
 
-	let gotJavaScript = (inputs) => {
-		//console.log("INPUTS",inputs)
-		readthedata(inputs.csv);
-		if (document.getElementById('select'))
-			document.getElementById('select').innerHTML = '';
-		if (document.getElementById('nav'))
-			document.getElementById('nav').innerHTML = '';
-		if (document.getElementById('titles'))
-			document.getElementById('titles').innerHTML = '';
-		if (document.getElementById('legend'))
-			document.getElementById('legend').innerHTML = '';
-		let func = () => {};
+let gotJavaScript = (inputs) => {
+  //console.log("INPUTS",inputs)
+  readthedata(inputs.csv);
+  if (document.getElementById('select'))
+    document.getElementById('select').innerHTML = '';
+  if (document.getElementById('nav'))
+    document.getElementById('nav').innerHTML = '';
+  if (document.getElementById('titles'))
+    document.getElementById('titles').innerHTML = '';
+  if (document.getElementById('legend'))
+    document.getElementById('legend').innerHTML = '';
+  let func = () => {};
 
-		if (inputs['combined'].length) func = Function(inputs['combined']);
+  if (inputs['combined'].length) func = Function(inputs['combined']);
 
-		func();
-	};
+  func();
+};
 
 	//listening for changes in any of these sources
 	//End of gotJavaScript
@@ -387,12 +394,16 @@ function updateChart(csvData) {
 		if (sessionStorage[chart]) {
 			inputs = JSON.parse(sessionStorage[chart]);
 			gotJavaScript(inputs);
+      
 		} else {
 			getTemplate(chart);
 		}
 	};
 	renderCode();
 	onMount(setTimeout(() => renderCode(), 1000));
+
+
+
 </script>
 
 {#if inputs.combined}
