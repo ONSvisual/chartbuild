@@ -89,46 +89,45 @@ let inputs = {
 const comments = new RegExp('//.*', 'mg') //this regex can strip out commented out lines from .js files
 //END OF - SIMPLE FUNCTIONS
 
-let getTemplate = (string) =>
-    //sessionStorage[string] ? inputs = JSON.parse(sessionStorage[string]) :
-    fetch( //getTemlate follows this order of getting: Config_then_JS_then_CSV_then_CSS. It cleans them up as it progresses
+let getTemplate = (string, dataUrl) => {
+    let csvUrl = dataUrl || `${root}${string}/data.csv`;
+    return fetch(
         `${root}${string}/config.js`
     )
     .then((res) => res.text())
     .then((config) =>      
         config
-        .replace(/([^{]+)/, '') //all this cleaning is because config is not a clean JSON file
+        .replace(/([^{]+)/, '')
         .replace(comments, '\n')
         .replace(/;/g, '')
         .replace(
             'data.csv',
-            `${root}${string}/data.csv`
+            csvUrl
         )
     )
     .then((cleaned) => {
-        inputs["config"] = JSON.parse(cleaned)// DO make it into a JSON object!
+        inputs["config"] = JSON.parse(cleaned)
         fetch(
-                `${root}${string}/script.js` //Now we fetch the .js script from the chart template - maybe this should be manipulable by pro users?
+                `${root}${string}/script.js`
             )
             .then((res) => res.text())
             .then((txt) => {
                 js = txt.replace(
                     "('#graphic');",
-                    "('#graphic');let config=" + JSON.stringify(inputs["config"]) //And next we add the config into the js script
+                    "('#graphic');let config=" + JSON.stringify(inputs["config"])
                 );
                 fetch(
-                        `${root}${string}/data.csv` //Now we get the csv string
+                        csvUrl
                     )
                     .then((res) => res.text())
                     .then((txt) => {
-                      console.log("GOTTO_1")
-                        csv = txt;//And save it to the csv variable
+                        csv = txt;
                         fetch(
-                                `${root}${string}/chart.css` //finally we get any custom CSS 
+                                `${root}${string}/chart.css`
                             )
                             .then((res) => res.text())
                             .then((txt) => {
-                                css = txt; //and save the custom CSS to the css variable, though it might need to be injected somewhere?
+                                css = txt;
                                 inputs.chartType = string;
                                 inputs.css = css;
                                 inputs.csv = csv;
@@ -139,13 +138,14 @@ let getTemplate = (string) =>
                     })
             })
     })
+}
 
 //getTemplate(chart)
 
 //gotJavaScript checks if the script.js has been found and loaded from the GitHub repo, then hydrates it into the DOM ***IT NEEDS TO UPDATE ALL 4 FILES***
 
 let gotJavaScript = (inputs) => {
-  console.log("INPUTS",inputs)
+  //console.log("INPUTS",inputs)
   readthedata(inputs.csv);  
     if (document.getElementById("legend")) document.getElementById("legend").innerHTML = "";
     if (document.getElementById("graphic")) document.getElementById("graphic").innerHTML = "";

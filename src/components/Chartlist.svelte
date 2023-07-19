@@ -1,0 +1,31 @@
+<!-- This component holds the list of charts that the builder can render. -->
+<script>
+const charts = [
+    'area-stacked',
+    'area-stacked-sm',
+    'bar-chart-horizontal-sm',
+    'bar-chart-horizontal-split',
+    'bar-chart-horizontal-stacked',
+    'bar-chart-horizontal-stacked-sm',
+    'bar-chart-horizontal-stacked-clustered-grouped',
+    'bar-chart-horizontal-stacked-clustered',
+    'bar-chart-horizontal-stacked-grouped',
+    'bar-chart-horizontal',
+    'bar-chart-horizontal-grouped-clustered',
+    'line-chart',
+    'comet-plot',
+    'column-chart',
+    'dot-plot',
+    'grouped-bar-chart',
+    'heatmap-per-column',
+    'heatmap',
+    'range-plot',
+    'scatter-plot',
+    'split-bar-chart',
+    'population-pyramid-static-with-comparison',
+    'population-pyramid-static',
+    'population-pyramid-with-comparison-toggle',
+    'population-pyramid-with-dropdown-and-interactive-comparison',
+    'population-pyramid-with-dropdown', 
+]
+</script>

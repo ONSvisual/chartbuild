@@ -4,6 +4,20 @@
   import { HSplitPane } from 'svelte-split-pane'
   import { toCSS, toJSON } from './cssjson/cssjson'
 
+//Experimental workflow here
+
+ import Fileuploader from './Fileuploader.svelte'
+
+    let userCsvDataUrl = sessionStorage.getItem('userCsvDataUrl') || "";
+
+    console.log("userCSV DATA",userCsvDataUrl);
+    function onFileUploaded(event) {
+         userCsvDataUrl = event.detail;
+        sessionStorage.setItem('userCsvDataUrl', userCsvDataUrl);
+     }
+//Experimental workflow here
+
+
   //const root = 'https://raw.githubusercontent.com/ONSvisual/census-charts/main/' //where this app is getting stuff from on GitHub
   //charts is simply a list of names of current templates available on the ONSvisual/census-charts GitHub repo. It can be added to. Bad charts could be commented out before they are fixed.
   const root =
@@ -14,7 +28,7 @@
     privateKey:"Iv1.15a31c21d3cd0dc5"
   })
   
-console.log(app)
+//console.log(app)
   //import IndexText from './IndexText.svelte'
   import Head from './Head.svelte'
   import { tsvParse, csvParse, tsvFormat, csvFormat } from 'd3-dsv'
@@ -28,14 +42,14 @@ console.log(app)
 
     const octokit = await app.getInstallationOctokit(8758367)
     if(octokit){
-    console.log('ockto', octokit)
+    //console.log('ockto', octokit)
     let result;
     await fetch(
       'https://api.github.com/repos/ONSvisual/Charts/git/trees/main?recursive=1'
     ).then(res=>result=res.json()).then(result=>
     {
 
-      console.log("result",result)
+     // console.log("result",result)
       tree = result.tree
       libTree = tree.filter((e) => e.path.startsWith('lib/')).map((e) => e.path)
       localStorage.gitTree = JSON.stringify(tree)
@@ -47,7 +61,7 @@ console.log(app)
           .then((text) => (libFiles[path] = text))
           .then((e) => (localStorage.libFiles = JSON.stringify(libFiles))),
       )
-      console.log('Tree', tree)
+     // console.log('Tree', tree)
       menuItems = [
         ...new Set(
           tree
@@ -67,8 +81,8 @@ console.log(app)
   function filterTreeAndFetchFiles() {
     let filteredTree = tree.filter((e) => e.path.startsWith(chart + '/'))
     let filesToFetch = filteredTree.map((el) => el.path)
-    console.log('filteredTree', filteredTree)
-    console.log('filesToFetch', filesToFetch)
+    //console.log('filteredTree', filteredTree)
+    //console.log('filesToFetch', filesToFetch)
     filesToFetch.forEach((e) => {
       fetch(
         //getTemlate follows this order of getting: Config_then_JS_then_CSV_then_CSS. It cleans them up as it progresses
@@ -227,7 +241,7 @@ console.log(app)
         try {
           JSON.parse(cleaned)
         } catch (e) {
-          console.log(e, cleaned)
+          //log(e, cleaned)
         }
         inputs['config'] = JSON.parse(cleaned) // DO make it into a JSON object!
         fetch(
@@ -278,6 +292,7 @@ console.log(app)
                         inputs.combined = combined
                         sessionStorage[string] = JSON.stringify(inputs)
                         gotJavaScript(inputs)
+                    
                       })
                   })
               })
@@ -324,6 +339,7 @@ console.log(app)
     if (sessionStorage[chart]) {
       inputs = JSON.parse(sessionStorage[chart])
       gotJavaScript(inputs)
+   // console.log("inputs",inputs);
     } else {
       getTemplate(chart)
     }
@@ -331,6 +347,7 @@ console.log(app)
   renderCode()
   onMount(setTimeout(() => renderCode(), 1000))
 </script>
+
 
 <style>
   input[type='number'] {
@@ -425,6 +442,17 @@ console.log(app)
     outline: solid;
   }
 </style>
+
+  <!-- Experimental workflow here -->
+ <FileUploader on:fileuploaded="{onFileUploaded}" />
+
+{#if csvDataUrl}
+    <p>Your CSV file has been uploaded. Use the following URL to access it:</p>
+    <a href="{csvDataUrl}" target="_blank">{csvDataUrl}</a>
+{/if} 
+
+<!-- Experimental workflow here  -->
+
 
 {#if inputs.combined}
   <Head headContent={inputs.css} />
@@ -791,7 +819,7 @@ console.log(app)
         class="css"
         bind:value={inputs.css}
         on:keyup={(e) => {
-          console.log('CSS', cssToJS(inputs.css))
+         // console.log('CSS', cssToJS(inputs.css))
           sessionStorage[chart] = JSON.stringify(inputs)
           updateCode(inputs)
         }} />
